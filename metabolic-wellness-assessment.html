@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metabolic Reset Self-Assessment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --gold: #d4b876; --black: #111111; --cream: #faebd4; --beige: #f5f1e8; }
+        body { font-family: 'Noto Serif Thai', serif; background: linear-gradient(135deg, var(--beige) 0%, var(--cream) 100%); min-height: 100vh; padding: 20px; color: #2a2a2a; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); overflow: hidden; }
+        .header { background: linear-gradient(135deg, var(--black) 0%, #2a2a2a 100%); color: var(--cream); padding: 40px 30px; text-align: center; border-bottom: 4px solid var(--gold); }
+        .header h1 { font-size: 32px; margin-bottom: 8px; font-weight: 700; }
+        .header p { font-size: 13px; color: var(--gold); margin-top: 8px; }
+        .form-container { padding: 40px 30px; }
+        .step-indicator { display: flex; gap: 8px; margin-bottom: 40px; }
+        .step { flex: 1; height: 4px; background: var(--beige); border-radius: 2px; }
+        .step.active { background: var(--gold); }
+        .step.completed { background: #8b7355; }
+        .form-section { display: none; }
+        .form-section.active { display: block; animation: slideIn 0.4s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .form-section h2 { font-size: 24px; margin-bottom: 24px; color: var(--black); font-weight: 700; }
+        .form-group { margin-bottom: 24px; }
+        label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; }
+        input[type="number"], input[type="text"] { width: 100%; padding: 12px 16px; border: 2px solid var(--beige); border-radius: 8px; font-family: 'Noto Serif Thai', serif; font-size: 14px; background: white; }
+        input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212,184,118,0.1); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        .radio-group { display: flex; gap: 12px; flex-wrap: wrap; flex-direction: column; }
+        .radio-option { min-width: auto; }
+        .radio-option input { display: none; }
+        .radio-option label { display: block; padding: 12px 16px; border: 2px solid var(--beige); border-radius: 8px; cursor: pointer; margin: 0; background: white; transition: all 0.3s; }
+        .radio-option input:checked + label { background: rgba(212,184,118,0.1); border-color: var(--gold); font-weight: 600; }
+        .buttons { display: flex; gap: 16px; margin-top: 40px; }
+        button { flex: 1; padding: 14px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; font-family: 'Noto Serif Thai', serif; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-secondary { background: var(--beige); color: #2a2a2a; }
+        .btn-secondary:hover { background: #ede9de; }
+        .btn-primary { background: linear-gradient(135deg, var(--black) 0%, #8b7355 100%); color: var(--cream); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .results { display: none; }
+        .results.active { display: block; }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+        .result-card { background: linear-gradient(135deg, var(--beige) 0%, #f9f5ed 100%); padding: 24px; border-radius: 12px; border-left: 4px solid var(--gold); }
+        .result-label { font-size: 12px; color: #8b7355; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 8px; }
+        .result-value { font-size: 28px; color: var(--black); font-weight: 700; margin-bottom: 4px; }
+        .result-range { font-size: 12px; color: #999; }
+        .status-badge { display: inline-block; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; margin-top: 8px; text-transform: uppercase; }
+        .status-good { background: rgba(76,175,80,0.15); color: #2d5016; }
+        .status-warn { background: rgba(255,193,7,0.15); color: #664d00; }
+        .status-bad { background: rgba(244,67,54,0.15); color: #b71c1c; }
+        .selector { background: linear-gradient(135deg, #f0f4f8 0%, #e8eef7 100%); padding: 24px; border-radius: 12px; margin-bottom: 32px; border: 2px solid var(--beige); }
+        .selector-title { font-size: 16px; font-weight: 600; color: var(--black); margin-bottom: 16px; text-align: center; }
+        .selector-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; }
+        .selector-btn { padding: 12px 16px; border: 2px solid var(--beige); border-radius: 8px; background: white; color: #2a2a2a; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 12px; text-align: center; font-family: 'Noto Serif Thai', serif; }
+        .selector-btn:hover { border-color: var(--gold); background: rgba(212,184,118,0.05); }
+        .selector-btn.active { border-color: var(--gold); background: linear-gradient(135deg, var(--gold) 0%, #c9a86e 100%); color: white; }
+        .hint { font-size: 12px; color: #999; margin-top: 4px; }
+        .disclaimer { background: #fff8f0; border: 2px solid #ffb74d; border-radius: 12px; padding: 24px; margin-bottom: 32px; font-size: 13px; color: #666; line-height: 1.8; }
+        .disclaimer strong { color: var(--black); display: block; margin-bottom: 8px; }
+        @media (max-width: 600px) {
+            .form-row, .form-row-3 { grid-template-columns: 1fr; }
+            .result-grid { grid-template-columns: 1fr; }
+            .header h1 { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="font-size: 11px; letter-spacing: 3px; margin-bottom: 12px;">ORGANIC GARDEN</div>
+            <h1>Metabolic Reset Self-Assessment</h1>
+            <p>Lifestyle & Metabolic Wellness Evaluation</p>
+            <p style="font-size: 13px; margin-top: 12px; color: rgba(250, 235, 212, 0.9);">แบบประเมินเบื้องต้นระบบเผาผลาญและไลฟ์สไตล์</p>
+        </div>
+
+        <div class="form-container" id="formContainer">
+            <div class="step-indicator" id="stepIndicator"></div>
+
+            <!-- Step 1 -->
+            <div class="form-section active" id="step1">
+                <h2>ข้อมูลพื้นฐาน</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="age">อายุ (ปี) *</label>
+                        <input type="number" id="age" min="15" max="100" placeholder="เช่น 45">
+                    </div>
+                    <div class="form-group">
+                        <label>เพศ *</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="gender-m" name="gender" value="male">
+                                <label for="gender-m">ชาย</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="gender-f" name="gender" value="female">
+                                <label for="gender-f">หญิง</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button class="btn-primary" onclick="nextStep()">ถัดไป →</button>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="form-section" id="step2">
+                <h2>ร่างกาย</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="weight">น้ำหนัก (kg) *</label>
+                        <input type="number" id="weight" min="30" max="300" step="0.1" placeholder="เช่น 65">
+                    </div>
+                    <div class="form-group">
+                        <label for="height">ส่วนสูง (cm) *</label>
+                        <input type="number" id="height" min="100" max="250" step="0.1" placeholder="เช่น 160">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="waist">รอบเอว (cm) *</label>
+                        <input type="number" id="waist" min="40" max="200" step="0.1" placeholder="เช่น 80">
+                    </div>
+                    <div class="form-group">
+                        <label for="hip">รอบสะโพก (cm) *</label>
+                        <input type="number" id="hip" min="60" max="220" step="0.1" placeholder="เช่น 95">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="neck">รอบคอ (cm)</label>
+                    <input type="number" id="neck" min="20" max="50" step="0.1" placeholder="เช่น 34">
+                    <div class="hint">💡 ไม่บังคับ - ระบบจะประมาณจากรอบเอว</div>
+                </div>
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevStep()">← ย้อนกลับ</button>
+                    <button class="btn-primary" onclick="nextStep()">ถัดไป →</button>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="form-section" id="step3">
+                <h2>วิถีชีวิต</h2>
+                <div class="form-group">
+                    <label>ระดับการเคลื่อนไหว *</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="activity-bmr" name="activity" value="1">
+                            <label for="activity-bmr">อัตราการเผาผลาญพื้นฐาน (BMR) - ไม่เคลื่อนไหว</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="activity-sedentary" name="activity" value="1.2">
+                            <label for="activity-sedentary">ไม่ออกกำลังกายเลยหรือน้อยมาก</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="activity-light" name="activity" value="1.375">
+                            <label for="activity-light">ออกกำลังกายเบา ๆ 1-3 ครั้ง/สัปดาห์</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="activity-moderate" name="activity" value="1.55">
+                            <label for="activity-moderate">ออกกำลังกายระดับปานกลาง 4-5 ครั้ง/สัปดาห์</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="activity-active" name="activity" value="1.725">
+                            <label for="activity-active">ออกกำลังกายหนัก 5-6 ครั้ง/สัปดาห์</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="activity-veryactive" name="activity" value="1.9">
+                            <label for="activity-veryactive">ออกกำลังกายหนักมากทุกวัน 6-7 ครั้ง/สัปดาห์</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sleep">ชั่วโมงนอนต่อคืน *</label>
+                        <input type="number" id="sleep" min="4" max="12" step="0.5" placeholder="เช่น 7">
+                    </div>
+                    <div class="form-group">
+                        <label for="stress">ระดับความเครียด (1-10) *</label>
+                        <input type="number" id="stress" min="1" max="10" placeholder="เช่น 5">
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevStep()">← ย้อนกลับ</button>
+                    <button class="btn-primary" onclick="nextStep()">ถัดไป →</button>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="form-section" id="step4">
+                <h2>เป้าหมายและผลเลือด</h2>
+                <div class="form-group">
+                    <label for="goalWeight">เป้าหมายน้ำหนัก (kg)</label>
+                    <input type="number" id="goalWeight" min="30" max="300" step="0.1" placeholder="เช่น 60">
+                </div>
+                <h3 style="margin-top: 24px; margin-bottom: 16px; font-size: 16px;">ผลเลือด (ไม่บังคับ)</h3>
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label for="glucose">Glucose (mg/dL)</label>
+                        <input type="number" id="glucose" min="60" max="300">
+                    </div>
+                    <div class="form-group">
+                        <label for="totalChol">Total Cholesterol</label>
+                        <input type="number" id="totalChol" min="100" max="400">
+                    </div>
+                    <div class="form-group">
+                        <label for="hdl">HDL (mg/dL)</label>
+                        <input type="number" id="hdl" min="20" max="100">
+                    </div>
+                </div>
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label for="ldl">LDL (mg/dL)</label>
+                        <input type="number" id="ldl" min="30" max="300">
+                    </div>
+                    <div class="form-group">
+                        <label for="triglycerides">Triglycerides</label>
+                        <input type="number" id="triglycerides" min="50" max="500">
+                    </div>
+                    <div class="form-group">
+                        <label for="sysBP">Blood Pressure - Systolic (mmHg)</label>
+                        <input type="number" id="sysBP" min="70" max="200" placeholder="เช่น 120">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="diaBP">Blood Pressure - Diastolic (mmHg)</label>
+                    <input type="number" id="diaBP" min="40" max="130" placeholder="เช่น 80">
+                </div>
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevStep()">← ย้อนกลับ</button>
+                    <button class="btn-primary" onclick="calculateResults()">คำนวณผล →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="results" id="results">
+            <div style="padding: 40px 30px;">
+                <h2 style="font-size: 28px; margin-bottom: 32px; text-align: center;">ผลลัพธ์การประเมิน 📊</h2>
+
+                <h3 style="margin-bottom: 20px; font-size: 18px; font-weight: 600;">สุขภาพทั่วไป</h3>
+                <div class="result-grid">
+                    <div class="result-card">
+                        <div class="result-label">BMR (kcal/วัน)</div>
+                        <div class="result-value" id="resultBMR">--</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">BMI</div>
+                        <div class="result-value" id="resultBMI">--</div>
+                        <div id="bmiBadge"></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Body Fat</div>
+                        <div class="result-value" id="resultBodyFat">--</div>
+                        <div class="result-range">%</div>
+                        <div id="bodyFatBadge"></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Wellness Age Estimate</div>
+                        <div class="result-value" id="resultMetabolicAge">--</div>
+                        <div class="result-range">ปี</div>
+                        <div id="ageBadge"></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">TDEE (kcal/วัน)</div>
+                        <div class="result-value" id="resultTDEE">--</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">WHR</div>
+                        <div class="result-value" id="resultWHR">--</div>
+                        <div id="whrBadge"></div>
+                    </div>
+                </div>
+
+                <!-- Weight Loss Rate -->
+                <div class="selector">
+                    <div class="selector-title">📉 อัตราการเปลี่ยนแปลงน้ำหนัก</div>
+                    <div class="selector-options">
+                        <button class="selector-btn" data-rate="-1">ลดน้ำหนัก 1 kg/สัปดาห์</button>
+                        <button class="selector-btn" data-rate="-0.5">ลดน้ำหนัก 0.5 kg/สัปดาห์</button>
+                        <button class="selector-btn" data-rate="-0.25">ลดน้ำหนัก 0.25 kg/สัปดาห์</button>
+                        <button class="selector-btn active" data-rate="0">รักษาน้ำหนัก</button>
+                        <button class="selector-btn" data-rate="0.25">เพิ่มน้ำหนัก 0.25 kg/สัปดาห์</button>
+                        <button class="selector-btn" data-rate="0.5">เพิ่มน้ำหนัก 0.5 kg/สัปดาห์</button>
+                        <button class="selector-btn" data-rate="1">เพิ่มน้ำหนัก 1 kg/สัปดาห์</button>
+                    </div>
+                </div>
+
+                <!-- Macro Ratio -->
+                <div class="selector">
+                    <div class="selector-title">🍽️ สารอาหาร (Carbs/Protein/Fat)</div>
+                    <div class="selector-options">
+                        <button class="selector-btn active" data-carb="30" data-prot="35" data-fat="35">สมดุลทั่วไป (30/35/35)</button>
+                        <button class="selector-btn" data-carb="40" data-prot="25" data-fat="35">เน้นคาร์บ (40/25/35)</button>
+                        <button class="selector-btn" data-carb="30" data-prot="45" data-fat="25">เน้นโปรตีน (30/45/25)</button>
+                        <button class="selector-btn" data-carb="40" data-prot="30" data-fat="30">พลังงานสำหรับวันแอคทีฟ (40/30/30)</button>
+                        <button class="selector-btn" data-carb="20" data-prot="30" data-fat="50">คาร์บต่ำ ดูแลระบบเผาผลาญ (20/30/50)</button>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 20px; margin-top: 40px; font-size: 18px; font-weight: 600;">Macronutrients</h3>
+                <div class="result-grid">
+                    <div class="result-card">
+                        <div class="result-label">คาร์โบไฮเดรต</div>
+                        <div class="result-value" id="resultCarbs">--</div>
+                        <div class="result-range">กรัม/วัน</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">โปรตีน</div>
+                        <div class="result-value" id="resultProtein">--</div>
+                        <div class="result-range">กรัม/วัน</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">ไขมัน</div>
+                        <div class="result-value" id="resultFat">--</div>
+                        <div class="result-range">กรัม/วัน</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">เป้าหมายแคลอรี่</div>
+                        <div class="result-value" id="resultCalorie">--</div>
+                        <div class="result-range">kcal/วัน</div>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 20px; margin-top: 40px; font-size: 18px; font-weight: 600;">ผลเลือด</h3>
+                <div class="result-grid">
+                    <div class="result-card">
+                        <div class="result-label">Glucose</div>
+                        <div class="result-value" id="resultGlucose">--</div>
+                        <div id="glucoseBadge"></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Total Cholesterol</div>
+                        <div class="result-value" id="resultTotalChol">--</div>
+                        <div id="cholBadge"></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">HDL</div>
+                        <div class="result-value" id="resultHDL">--</div>
+                        <div id="hdlBadge"></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">LDL</div>
+                        <div class="result-value" id="resultLDL">--</div>
+                        <div id="ldlBadge"></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Triglycerides</div>
+                        <div class="result-value" id="resultTrig">--</div>
+                        <div id="trigBadge"></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Blood Pressure</div>
+                        <div class="result-value" id="resultBP">--</div>
+                        <div id="bpBadge"></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">TG/HDL Ratio Risk</div>
+                        <div class="result-value" id="resultSDLDL">--</div>
+                        <div id="sdlBadge"></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Insulin Resistance (TG/HDL)</div>
+                        <div class="result-value" id="resultIRI">--</div>
+                        <div id="iriBadge"></div>
+                    </div>
+                </div>
+
+                <div class="disclaimer">
+                    <strong>⚠️ ข้อมูลสำคัญ - โปรดอ่าน</strong>
+                    เครื่องประเมินนี้เป็น <strong>แบบประเมินเบื้องต้นเท่านั้น</strong> ด้านไลฟ์สไตล์ และระบบเผาผลาญ โดยใช้สูตรมาตรฐาน ค่าต่างๆ คือ <strong>ค่าประมาณ ไม่ใช่การวินิจฉัยโรค</strong> ผลลัพธ์ <strong>ไม่สามารถใช้แทนการปรึกษาแพทย์</strong> หรือการตรวจสอบสุขภาพจากแพทย์ ผู้ใช้ควรปรึกษาแพทย์หรือผู้เชี่ยวชาญด้านสุขภาพเสมอสำหรับการตัดสินใจด้านสุขภาพที่สำคัญ
+                </div>
+
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="resetForm()">← เริ่มใหม่</button>
+                    <button class="btn-primary" onclick="shareResults()">แชร์ 📤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let weightRate = 0;
+        let macroC = 30, macroP = 35, macroF = 35;
+        let lastData = {};
+
+        function initSteps() {
+            const indicator = document.getElementById('stepIndicator');
+            indicator.innerHTML = '<div class="step active"></div><div class="step"></div><div class="step"></div><div class="step"></div>';
+        }
+
+        function updateSteps() {
+            const steps = document.querySelectorAll('.step');
+            steps.forEach((s, i) => {
+                s.classList.remove('active', 'completed');
+                if (i + 1 < currentStep) s.classList.add('completed');
+                else if (i + 1 === currentStep) s.classList.add('active');
+            });
+        }
+
+        function showStep(step) {
+            document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+            updateSteps();
+            window.scrollTo(0, 0);
+        }
+
+        function nextStep() {
+            if (currentStep === 1 && (!document.getElementById('age').value || !document.querySelector('input[name="gender"]:checked'))) {
+                alert('กรุณากรอกข้อมูลให้ครบ'); return;
+            }
+            if (currentStep === 2 && (!document.getElementById('weight').value || !document.getElementById('height').value || !document.getElementById('waist').value || !document.getElementById('hip').value)) {
+                alert('กรุณากรอกข้อมูลให้ครบ'); return;
+            }
+            if (currentStep === 3 && (!document.querySelector('input[name="activity"]:checked') || !document.getElementById('sleep').value || !document.getElementById('stress').value)) {
+                alert('กรุณากรอกข้อมูลให้ครบ'); return;
+            }
+            currentStep++;
+            showStep(currentStep);
+        }
+
+        function prevStep() {
+            currentStep--;
+            showStep(currentStep);
+        }
+
+        function calculateResults() {
+            const age = parseInt(document.getElementById('age').value);
+            const gender = document.querySelector('input[name="gender"]:checked').value;
+            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseFloat(document.getElementById('height').value);
+            const waist = parseFloat(document.getElementById('waist').value);
+            const hip = parseFloat(document.getElementById('hip').value);
+            const neck = document.getElementById('neck').value ? parseFloat(document.getElementById('neck').value) : 0;
+            const activity = parseFloat(document.querySelector('input[name="activity"]:checked').value);
+            const sleep = parseFloat(document.getElementById('sleep').value);
+            const stress = parseInt(document.getElementById('stress').value);
+
+            const bmi = weight / ((height / 100) ** 2);
+            const whr = waist / hip;
+
+            let bmr = gender === 'male' 
+                ? 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)
+                : 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+
+            const tdee = Math.round(bmr * activity);
+            const metabolicAge = Math.round(age + (bmi - 25) + (stress - 5) - (sleep - 7));
+
+            let bodyFat;
+            if (neck > 0) {
+                if (gender === 'female') {
+                    bodyFat = 495 / (1.29579 - (0.35004 * Math.log10(waist + hip - neck)) + (0.22100 * Math.log10(height))) - 450;
+                } else {
+                    bodyFat = 495 / (1.0324 - (0.19077 * Math.log10(waist - neck)) + (0.15456 * Math.log10(height))) - 450;
+                }
+            } else {
+                bodyFat = (1.20 * bmi) + (0.23 * age) - 5.4;
+            }
+            bodyFat = Math.max(gender === 'female' ? 10 : 5, Math.round(bodyFat * 10) / 10);
+
+            let calTarget = tdee + (weightRate * 1100);
+            const carbCal = calTarget * (macroC / 100);
+            const proteinCal = calTarget * (macroP / 100);
+            const fatCal = calTarget * (macroF / 100);
+
+            const glucose = parseFloat(document.getElementById('glucose').value) || null;
+            const totalChol = parseFloat(document.getElementById('totalChol').value) || null;
+            const hdl = parseFloat(document.getElementById('hdl').value) || null;
+            const ldl = parseFloat(document.getElementById('ldl').value) || null;
+            const trig = parseFloat(document.getElementById('triglycerides').value) || null;
+            const sysBP = parseFloat(document.getElementById('sysBP').value) || null;
+            const diaBP = parseFloat(document.getElementById('diaBP').value) || null;
+
+            const estTrig = trig || Math.round(150 + (weight - 70) * 2 + (stress * 5) - (sleep * 8));
+            const estHDL = hdl || Math.max(35, 50 - ((bmi - 25) * 0.5));
+            
+            const sdldl = (estTrig / estHDL).toFixed(2);
+            const iri = (estTrig / estHDL).toFixed(2);
+
+            lastData = {
+                age, gender, weight, height, waist, hip, activity, sleep, stress,
+                bmi, whr, bmr: Math.round(bmr), tdee, metabolicAge, bodyFat, calTarget: Math.round(calTarget),
+                carbs: Math.round(carbCal / 4), protein: Math.round(proteinCal / 4), fat: Math.round(fatCal / 9),
+                glucose, totalChol, hdl, ldl, trig, sysBP, diaBP, estTrig, estHDL, sdldl, iri
+            };
+
+            displayResults();
+            document.getElementById('formContainer').style.display = 'none';
+            document.getElementById('results').classList.add('active');
+        }
+
+        function getStatusBadge(value, thresholds) {
+            if (value === '--' || value === null) return '<span class="status-badge status-good">ไม่ระบุ</span>';
+            value = parseFloat(value);
+            if (value <= thresholds.good) return '<span class="status-badge status-good">ดี</span>';
+            if (value <= thresholds.warn) return '<span class="status-badge status-warn">ระวัง</span>';
+            return '<span class="status-badge status-bad">สูง</span>';
+        }
+
+        function displayResults() {
+            const d = lastData;
+
+            document.getElementById('resultBMR').textContent = d.bmr;
+            document.getElementById('resultBMI').textContent = d.bmi.toFixed(1);
+            document.getElementById('bmiBadge').innerHTML = getStatusBadge(d.bmi, { good: 25, warn: 30 });
+
+            document.getElementById('resultBodyFat').textContent = d.bodyFat.toFixed(1);
+            const bfThresh = d.gender === 'female' ? { good: 32, warn: 38 } : { good: 25, warn: 30 };
+            document.getElementById('bodyFatBadge').innerHTML = getStatusBadge(d.bodyFat, bfThresh);
+
+            document.getElementById('resultMetabolicAge').textContent = Math.max(18, d.metabolicAge);
+            const ageStatus = d.metabolicAge < d.age ? 'ดี' : 'ต้องดูแล';
+            document.getElementById('ageBadge').innerHTML = `<span class="status-badge ${d.metabolicAge < d.age ? 'status-good' : 'status-warn'}">${ageStatus}</span>`;
+
+            document.getElementById('resultTDEE').textContent = d.tdee.toLocaleString('th-TH');
+            document.getElementById('resultWHR').textContent = d.whr.toFixed(2);
+            document.getElementById('whrBadge').innerHTML = getStatusBadge(d.whr, { good: 0.85, warn: 0.95 });
+
+            document.getElementById('resultCarbs').textContent = d.carbs;
+            document.getElementById('resultProtein').textContent = d.protein;
+            document.getElementById('resultFat').textContent = d.fat;
+            document.getElementById('resultCalorie').textContent = d.calTarget.toLocaleString('th-TH');
+
+            if (d.glucose) {
+                document.getElementById('resultGlucose').textContent = d.glucose;
+                document.getElementById('glucoseBadge').innerHTML = getStatusBadge(d.glucose, { good: 100, warn: 126 });
+            } else document.getElementById('resultGlucose').textContent = '--';
+
+            if (d.totalChol) {
+                document.getElementById('resultTotalChol').textContent = d.totalChol;
+                document.getElementById('cholBadge').innerHTML = getStatusBadge(d.totalChol, { good: 200, warn: 240 });
+            } else document.getElementById('resultTotalChol').textContent = '--';
+
+            if (d.hdl) {
+                document.getElementById('resultHDL').textContent = d.hdl;
+                document.getElementById('hdlBadge').innerHTML = getStatusBadge(100 - d.hdl, { good: 50, warn: 60 });
+            } else document.getElementById('resultHDL').textContent = '--';
+
+            if (d.ldl) {
+                document.getElementById('resultLDL').textContent = d.ldl;
+                document.getElementById('ldlBadge').innerHTML = getStatusBadge(d.ldl, { good: 130, warn: 160 });
+            } else document.getElementById('resultLDL').textContent = '--';
+
+            if (d.trig) {
+                document.getElementById('resultTrig').textContent = d.trig;
+                document.getElementById('trigBadge').innerHTML = getStatusBadge(d.trig, { good: 150, warn: 200 });
+            } else document.getElementById('resultTrig').textContent = '--';
+
+            if (d.sysBP && d.diaBP) {
+                document.getElementById('resultBP').textContent = `${d.sysBP}/${d.diaBP}`;
+                let bpStatus = 'ดี', bpClass = 'status-good';
+                if ((d.sysBP >= 120 && d.sysBP < 130) || (d.diaBP >= 80 && d.diaBP < 85)) {
+                    bpStatus = 'เริ่มสูง'; bpClass = 'status-warn';
+                } else if (d.sysBP >= 130 || d.diaBP >= 85) {
+                    bpStatus = 'ควรระวัง'; bpClass = 'status-bad';
+                }
+                document.getElementById('bpBadge').innerHTML = `<span class="status-badge ${bpClass}">${bpStatus}</span>`;
+            } else document.getElementById('resultBP').textContent = '--';
+
+            document.getElementById('resultSDLDL').textContent = d.sdldl;
+            let sdlStatus = 'สูง', sdlClass = 'status-bad';
+            if (d.sdldl < 1.5) { sdlStatus = 'ดี'; sdlClass = 'status-good'; }
+            else if (d.sdldl < 2.0) { sdlStatus = 'ระวัง'; sdlClass = 'status-warn'; }
+            document.getElementById('sdlBadge').innerHTML = `<span class="status-badge ${sdlClass}">${sdlStatus}</span>`;
+
+            document.getElementById('resultIRI').textContent = d.iri;
+            let iriStatus = 'ดี', iriClass = 'status-good';
+            if (d.iri > 2) { iriStatus = 'ระวัง'; iriClass = 'status-warn'; }
+            if (d.iri > 3) { iriStatus = 'สูง'; iriClass = 'status-bad'; }
+            document.getElementById('iriBadge').innerHTML = `<span class="status-badge ${iriClass}">${iriStatus}</span>`;
+        }
+
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('selector-btn')) {
+                if (e.target.dataset.rate !== undefined) {
+                    weightRate = parseFloat(e.target.dataset.rate);
+                    document.querySelectorAll('.selector')[0].querySelectorAll('.selector-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    if (Object.keys(lastData).length > 0) calculateResults();
+                } else if (e.target.dataset.carb !== undefined) {
+                    macroC = parseInt(e.target.dataset.carb);
+                    macroP = parseInt(e.target.dataset.prot);
+                    macroF = parseInt(e.target.dataset.fat);
+                    document.querySelectorAll('.selector')[1].querySelectorAll('.selector-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    if (Object.keys(lastData).length > 0) calculateResults();
+                }
+            }
+        });
+
+        function resetForm() {
+            document.getElementById('formContainer').style.display = 'block';
+            document.getElementById('results').classList.remove('active');
+            currentStep = 1;
+            showStep(1);
+            document.querySelectorAll('input').forEach(i => i.value = '');
+            document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(i => i.checked = false);
+            weightRate = 0;
+            macroC = 30; macroP = 35; macroF = 35;
+            lastData = {};
+        }
+
+        function shareResults() {
+            alert('แชร์ผลลัพธ์ของคุณ');
+        }
+
+        initSteps();
+    </script>
+</body>
+</html>
