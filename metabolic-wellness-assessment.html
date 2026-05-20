@@ -369,16 +369,15 @@
 
                 <div class="disclaimer">
                     <strong>💡 เก็บผลลัพธ์ของคุณ</strong>
-                    คุณสามารถ: <br>
-                    1️⃣ ใช้ปุ่ม <strong>"พิมพ์"</strong> บันทึกหรือพิมพ์เป็น PDF <br>
-                    2️⃣ ใช้ปุ่ม <strong>"ดาวน์โหลด"</strong> เก็บรูปผลลัพธ์ <br>
-                    3️⃣ หรือแคปหน้าจอ (Print Screen) เก็บไว้เอง
+                    กด <strong>"พิมพ์"</strong> เพื่อ: <br>
+                    • บันทึกเป็น PDF <br>
+                    • พิมพ์ออกมา <br>
+                    • หรือเก็บรูปผลลัพธ์ไว้ในไฟล์
                 </div>
 
                 <div class="buttons">
                     <button class="btn-secondary" onclick="resetForm()">← เริ่มใหม่</button>
                     <button class="btn-primary" onclick="printResults()">🖨️ พิมพ์</button>
-                    <button class="btn-primary" onclick="downloadAsImage()">⬇️ ดาวน์โหลด</button>
                 </div>
             </div>
         </div>
@@ -611,22 +610,168 @@
         }
 
         function downloadAsImage() {
-            const resultsDiv = document.getElementById('results');
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+            const d = lastData;
+            const bfThresh = d.gender === 'female' ? { good: 32, warn: 38 } : { good: 25, warn: 30 };
             
-            // สร้างรูป PNG ด้วย html2canvas (fallback ให้ใช้ screenshot)
-            if (typeof html2canvas !== 'undefined') {
-                html2canvas(resultsDiv).then(canvas => {
-                    const link = document.createElement('a');
-                    link.href = canvas.toDataURL('image/png');
-                    link.download = 'metabolic-result-' + new Date().getTime() + '.png';
-                    link.click();
-                });
-            } else {
-                // Fallback: แจ้งให้ใช้ Print Screen
-                alert('ขออภัย\n\nวิธีที่ง่ายสุด:\n1. กด Print Screen\n2. ค้นหา "Paint" หรือ "Photo"\n3. Paste (Ctrl+V)\n4. Save\n\nหรือใช้ปุ่ม "พิมพ์" เพื่อบันทึกเป็น PDF ได้!');
-            }
+            const resultHTML = `
+                <!DOCTYPE html>
+                <html lang="th">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>ผลลัพธ์ Metabolic Reset Self-Assessment</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@400;600;700&display=swap" rel="stylesheet">
+                    <style>
+                        body { margin: 0; padding: 20px; background: #f0f0f0; font-family: 'Noto Serif Thai', serif; }
+                        .result-image { 
+                            max-width: 900px; 
+                            margin: 0 auto; 
+                            background: white; 
+                            padding: 50px; 
+                            border-radius: 20px;
+                            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+                        }
+                        .header { 
+                            text-align: center; 
+                            border-bottom: 3px solid #d4b876; 
+                            padding-bottom: 30px; 
+                            margin-bottom: 40px;
+                        }
+                        .header h1 { 
+                            font-size: 32px; 
+                            color: #111111; 
+                            margin: 0 0 10px 0;
+                        }
+                        .header p { 
+                            color: #d4b876; 
+                            font-size: 14px; 
+                            margin: 0;
+                            text-transform: uppercase;
+                            letter-spacing: 2px;
+                        }
+                        .results-grid { 
+                            display: grid; 
+                            grid-template-columns: 1fr 1fr; 
+                            gap: 30px;
+                            margin-bottom: 40px;
+                        }
+                        .result-card { 
+                            background: linear-gradient(135deg, #f5f1e8 0%, #f9f5ed 100%); 
+                            padding: 25px; 
+                            border-radius: 12px; 
+                            border-left: 4px solid #d4b876;
+                        }
+                        .result-label { 
+                            font-size: 11px; 
+                            color: #8b7355; 
+                            text-transform: uppercase; 
+                            letter-spacing: 1px; 
+                            font-weight: 600; 
+                            margin-bottom: 8px;
+                        }
+                        .result-value { 
+                            font-size: 32px; 
+                            color: #111111; 
+                            font-weight: 700;
+                        }
+                        .macros { 
+                            background: linear-gradient(135deg, #f5f1e8 0%, #f9f5ed 100%); 
+                            padding: 25px; 
+                            border-radius: 12px;
+                            border-left: 4px solid #d4b876;
+                        }
+                        .macros h3 { 
+                            margin-top: 0; 
+                            color: #111111;
+                        }
+                        .macro-item { 
+                            display: flex; 
+                            justify-content: space-between; 
+                            margin: 12px 0;
+                            font-size: 15px;
+                        }
+                        .footer { 
+                            text-align: center; 
+                            padding-top: 30px; 
+                            border-top: 2px solid #d4b876; 
+                            color: #999;
+                            font-size: 12px;
+                        }
+                        @media print {
+                            body { background: white; padding: 0; }
+                            .result-image { box-shadow: none; padding: 30px; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="result-image" id="resultImage">
+                        <div class="header">
+                            <h1>🌱 Metabolic Reset Self-Assessment</h1>
+                            <p>Lifestyle & Metabolic Wellness Evaluation</p>
+                        </div>
+                        
+                        <div class="results-grid">
+                            <div class="result-card">
+                                <div class="result-label">BMI</div>
+                                <div class="result-value">${d.bmi.toFixed(1)}</div>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-label">Body Fat</div>
+                                <div class="result-value">${d.bodyFat.toFixed(1)}%</div>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-label">Wellness Age Estimate</div>
+                                <div class="result-value">${Math.max(18, d.metabolicAge)}</div>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-label">TDEE (kcal/วัน)</div>
+                                <div class="result-value">${d.tdee}</div>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-label">Calorie Target</div>
+                                <div class="result-value">${d.calTarget}</div>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-label">WHR</div>
+                                <div class="result-value">${d.whr.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="macros">
+                            <h3>📊 Macronutrients</h3>
+                            <div class="macro-item">
+                                <span>คาร์โบไฮเดรต:</span>
+                                <strong>${d.carbs}g/วัน</strong>
+                            </div>
+                            <div class="macro-item">
+                                <span>โปรตีน:</span>
+                                <strong>${d.protein}g/วัน</strong>
+                            </div>
+                            <div class="macro-item">
+                                <span>ไขมัน:</span>
+                                <strong>${d.fat}g/วัน</strong>
+                            </div>
+                        </div>
+                        
+                        <div class="footer">
+                            <p>✓ แคปหน้าจอหรือพิมพ์ออกมาได้<br>
+                            ✓ ผลลัพธ์นี้เป็นการประเมินเบื้องต้น ไม่ใช่การวินิจฉัยจากแพทย์</p>
+                        </div>
+                    </div>
+                    
+                    <script>
+                        window.onload = function() {
+                            // ให้ลูกค่าแคปหน้าจอหรือพิมพ์ได้
+                            console.log('กด Ctrl+P เพื่อพิมพ์ หรือแคปหน้าจอได้เลย');
+                        }
+                    </script>
+                </body>
+                </html>
+            `;
+            
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write(resultHTML);
+            newWindow.document.close();
         }
 
         initSteps();
