@@ -603,7 +603,52 @@
         }
 
         function shareResults() {
-            alert('แชร์ผลลัพธ์ของคุณ');
+            const d = lastData;
+            const resultText = `🌱 Metabolic Reset Self-Assessment ผลลัพธ์ของฉัน:\n\n` +
+                `📊 BMI: ${d.bmi.toFixed(1)}\n` +
+                `💪 Body Fat: ${d.bodyFat.toFixed(1)}%\n` +
+                `🎯 Wellness Age: ${Math.max(18, d.metabolicAge)} ปี\n` +
+                `🔥 TDEE: ${d.tdee} kcal/วัน\n` +
+                `🍽️ Calorie Target: ${d.calTarget} kcal/วัน\n\n` +
+                `ลองทำแบบประเมินเอง:\n` +
+                `https://organicgardenthailand.github.io/metabolic/`;
+            
+            // Web Share API (สำหรับมือถือ)
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Metabolic Reset Self-Assessment',
+                    text: resultText,
+                    url: 'https://organicgardenthailand.github.io/metabolic/'
+                }).catch(err => console.log('Error sharing:', err));
+            } else {
+                // Fallback: แสดงตัวเลือกแชร์
+                shareViaOptions(resultText);
+            }
+        }
+
+        function shareViaOptions(text) {
+            const url = 'https://organicgardenthailand.github.io/metabolic/';
+            const encodedText = encodeURIComponent(text);
+            const encodedUrl = encodeURIComponent(url);
+            
+            const shareOptions = `
+                <div style="padding: 20px; background: white; border-radius: 12px; text-align: center;">
+                    <h3>แชร์ผลลัพธ์ให้เพื่อน</h3>
+                    <div style="margin: 20px 0; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}" target="_blank" style="padding: 10px 20px; background: #1877f2; color: white; border-radius: 6px; text-decoration: none; font-weight: 600;">📘 Facebook</a>
+                        <a href="https://wa.me/?text=${encodedText} ${encodedUrl}" target="_blank" style="padding: 10px 20px; background: #25d366; color: white; border-radius: 6px; text-decoration: none; font-weight: 600;">💬 WhatsApp</a>
+                        <a href="https://social-plugins.line.me/web/share?url=${encodedUrl}&text=${encodedText}" target="_blank" style="padding: 10px 20px; background: #00b900; color: white; border-radius: 6px; text-decoration: none; font-weight: 600;">💚 LINE</a>
+                        <a href="https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}" target="_blank" style="padding: 10px 20px; background: #1da1f2; color: white; border-radius: 6px; text-decoration: none; font-weight: 600;">🐦 Twitter</a>
+                        <a href="mailto:?subject=Metabolic Reset Self-Assessment&body=${encodedText}" style="padding: 10px 20px; background: #ea4335; color: white; border-radius: 6px; text-decoration: none; font-weight: 600;">📧 Email</a>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.removeChild(this.parentElement); return false;" style="margin-top: 10px; padding: 8px 16px; background: #ddd; border: none; border-radius: 6px; cursor: pointer;">ปิด</button>
+                </div>
+            `;
+            
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999;';
+            modal.innerHTML = shareOptions;
+            document.body.appendChild(modal);
         }
 
         initSteps();
